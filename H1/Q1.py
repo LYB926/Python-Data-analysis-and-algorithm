@@ -12,6 +12,6 @@ def randomEmail():
     for i in range(0, random.randint(3,6)):  domain = domain + random.choice(charList)
     return name + '@' + domain + random.choice(suffixList)
     
-for i in range(0,6):
+for i in range(0,20):
     mailAddr = randomEmail()
     print(mailAddr)
