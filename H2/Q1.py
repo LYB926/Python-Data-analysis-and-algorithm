@@ -47,5 +47,5 @@ print(x * 5)
 print(x * y)
 print(x * z)
 print(x * 'x')
-# print (x * y)
+
             
