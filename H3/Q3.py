@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # 读取dat位图
-FILE = open('H3/Flower.dat', 'rb')
+FILE = open('Flower.dat', 'rb')
 img = np.fromfile(FILE, dtype=np.uint8).reshape((1024, 1024))
 FILE.close()
 
