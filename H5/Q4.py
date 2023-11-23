@@ -6,7 +6,6 @@
 
 """
 
-
 def dfs(x, y):
     global num
     for i in range(0, 4):
