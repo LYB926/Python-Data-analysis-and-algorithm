@@ -19,10 +19,10 @@ def quick_sort(arr):
     else:
         return arr
     
-# arr = [4,10,3,7,5,2]
+#arr = [4,10,3,7,5,2]
 arr = [8,2,3,5,7,6,11,14,1,9,13,10,4,12,15]
-print('arr = ', arr)
 
 arr_sorted = quick_sort(arr)
 median = arr_sorted[int(len(arr_sorted)/2)]
+print('array = {}'.format(arr))
 print('中位数为： {}'.format(median))

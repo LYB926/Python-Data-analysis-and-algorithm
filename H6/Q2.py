@@ -46,5 +46,5 @@ for i in range(0, (1 << num_clips)):
             min_len, min_dura, selected_clips = lenc, dura, tmp_clips
 
 print ('\n最小的视频数量: {}'.format(len(selected_clips)))
-print (selected_clips)
+print ('所选的序列：', selected_clips)
         
