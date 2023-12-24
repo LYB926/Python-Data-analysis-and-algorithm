@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-# 通用调试管线 TkAgg
+
 ###
 # 专业组
 # 复旦1：法学, 历史学类, 社会科学试验班, 新闻传播学类, 英语, 中国语言文学类, 哲学类 (7)
@@ -11,8 +11,8 @@ import numpy as np
 # 复医2：药学, 公共事业管理, 口腔医学, 预防医学 (4)
 ###
 
-major = {'复旦1': ['法学', '历史学类', '社会科学试验班', '新闻传播学类', '英语', '中国语言文学类', '哲学类'],
-         '复旦2': ['工科试验班', '软件工程', '数学类', '自然科学试验班', '技术科学试验班', '计算机科学与技术(拔尖人才试验班，本研贯通)', '航空航天类'],
+MajorGroup = {'复旦1': ['法学', '历史学类', '社会科学试验班', '新闻传播学类', '英语', '中国语言文学类', '哲学类'],
+         '复旦2': ['工科试验班(新工科本研贯通)', '软件工程', '数学类', '自然科学试验班', '技术科学试验班', '计算机科学与技术(拔尖人才试验班，本研贯通)', '航空航天类'],
          '复旦3': ['经济学类', '经济管理试验班'],
          '复旦4': ['数学英才试验班'],
          '复医1': ['临床医学(8年制本博连读)', '临床医学(5年制)'],
@@ -32,24 +32,27 @@ admissionTable = pd.read_excel('招生计划表.xlsx', sheet_name=0)
 scoreTable = pd.read_excel('报名成绩统计.xlsx', sheet_name=0)
 
 grouped = scoreTable.groupby(scoreTable.iloc[:, 2])
-scoreGrouped = {}
-admittedNum = {}
-admittedStu = {}
-adjustStu = {}
-for name, _ in grouped:
-    name = name.split('(')[0]
-    scoreGrouped[name] = _.values
+scoreGrouped, admittedNum, admittedStu, adjustStu, failedStu = {}, {}, {}, {}, {}
+for name, table in grouped:
+    scoreGrouped[name] = table.values
     admittedNum[name] = 0
-    admittedStu[name] = []
-    adjustStu[name] = []
+    admittedStu[name], adjustStu[name], failedStu[name] = [], [], []
 
 admission = admissionTable.set_index('专业名称')['计划数'].to_dict()
 
-# 录取过程
+quotaNum = {}
+for g, m in MajorGroup.items():
+    sum = 0
+    for i in m:
+        sum += admission[majors[i]]
+    quotaNum[g] = sum
+
 for groupName, groupScoreTable in scoreGrouped.items():  # 对每个专业组
     # print('*********************')
     # print(key)
     # print(value)
+    # 录取过程
+    adjusting = []
     for stu in groupScoreTable:
         preference = stu[4].split('、')
         # print(preference)
@@ -61,16 +64,35 @@ for groupName, groupScoreTable in scoreGrouped.items():  # 对每个专业组
                 admittedNum[groupName] += 1  # 该专业组录取人数加1
                 admittedStu[groupName].append(stu)  # 记录此学生
                 break
-        if (admitted == False):  # 录取失败
+        if (admitted == False):   # 录取失败
             if (stu[5] == '是'):  # 服从调剂
-                adjustStu[groupName].append(stu)  # 添加到本专业调剂名单
+                adjusting.append(stu)  # 添加到本专业等待调剂List
+            else:
+                failedStu[groupName].append(stu)  # 添加到落榜名单
 
-print(admittedStu)
-print('****************************')
-print(adjustStu)
-
-
-# 分别对每个专业组进行
-
+    # 计算可调剂的名额
+    adjustQuota = quotaNum[groupName] - admittedNum[groupName]
+    # 进行调剂
+    for stu in adjusting:
+        if (adjustQuota > 0):
+            adjustStu[groupName].append(stu)
+            admittedNum[groupName] += 1
+            adjustQuota -= adjustQuota
+        else:
+            failedStu[groupName].append(stu)
+     
+# print(admittedStu)
+# print('****************************')
+# print(adjusting)
+                
 # print(scoreGrouped['复旦1'][0][4])
 # print(admission)
+
+# 输出为XLSX文件
+for _, table in admittedStu.items():
+    # TODO HERE
+    df=pd.DataFrame(table)
+    print(df)
+    print('************************************')
+    pass
+            
