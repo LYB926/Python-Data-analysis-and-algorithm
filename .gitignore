@@ -1,6 +1,8 @@
 
 *.docx
 *.jpg
-*.png
 *.zip
 *.pdf
+*.pyc
+*题目*.png
+*.pyc
