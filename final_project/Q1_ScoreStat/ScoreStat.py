@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 
 ###
+# 思路：split-apply-combine  Slide7
+###
 # 专业组
 # 复旦1：法学, 历史学类, 社会科学试验班, 新闻传播学类, 英语, 中国语言文学类, 哲学类 (7)
 # 复旦2：工科试验班, 软件工程, 数学类, 自然科学试验班, 技术科学试验班, 计算机科学与技术(拔尖人才试验班，本研贯通), 航空航天类 (7)
@@ -62,23 +64,27 @@ for groupName, groupScoreTable in scoreGrouped.items():  # 对每个专业组
                 admitted = True
                 admission[majors[p]] -= 1   # 该专业空位减一
                 admittedNum[groupName] += 1  # 该专业组录取人数加1
+                stu[4] = p  # 记录学生最终录取志愿
                 admittedStu[groupName].append(stu)  # 记录此学生
                 break
         if (admitted == False):   # 录取失败
             if (stu[5] == '是'):  # 服从调剂
                 adjusting.append(stu)  # 添加到本专业等待调剂List
             else:
+                stu[4] = '未录取'
                 failedStu[groupName].append(stu)  # 添加到落榜名单
 
     # 计算可调剂的名额
     adjustQuota = quotaNum[groupName] - admittedNum[groupName]
     # 进行调剂
     for stu in adjusting:
-        if (adjustQuota > 0):
+        if (adjustQuota > 0):  # 专业组内还有名额，记录为调剂
+            stu[4] = '专业组内调剂'
             adjustStu[groupName].append(stu)
             admittedNum[groupName] += 1
             adjustQuota -= adjustQuota
         else:
+            stu[4] = '未录取'
             failedStu[groupName].append(stu)
      
 # print(admittedStu)
@@ -89,10 +95,35 @@ for groupName, groupScoreTable in scoreGrouped.items():  # 对每个专业组
 # print(admission)
 
 # 输出为XLSX文件
+dfAdmitted = pd.DataFrame()
 for _, table in admittedStu.items():
-    # TODO HERE
-    df=pd.DataFrame(table)
-    print(df)
-    print('************************************')
-    pass
-            
+    df = pd.DataFrame(table)    
+    dfAdmitted = pd.concat([dfAdmitted, df])
+
+    # print(dfAdmitted)
+    # print('************************************')
+
+for _, table in adjustStu.items():
+    df = pd.DataFrame(table)
+    dfAdmitted = pd.concat([dfAdmitted, df])
+
+    # print(dfAdmitted)
+    # print('************************************')
+
+dfFailed = pd.DataFrame()
+for _, table in failedStu.items():
+    df = pd.DataFrame(table)
+    dfFailed = pd.concat([dfFailed, df])
+
+    # print(dfFailed)
+    # print('************************************')
+
+dfAll = pd.concat([dfAdmitted, dfFailed])
+dfAllSorted = dfAll.sort_values(by=0)
+dfAllSorted.drop(5, axis=1, inplace=True)
+columnsTitle = ['报名号', '综合成绩', '专业组', '排名', '录取情况']
+dfAllSorted.columns = columnsTitle
+
+
+with pd.ExcelWriter('output_file.xlsx') as writer:
+    dfAllSorted.to_excel(writer, sheet_name='Sheet1', index=False)
